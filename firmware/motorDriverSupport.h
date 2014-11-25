@@ -42,6 +42,8 @@ void zeroForearm()
     _delay_ms(800);
     enc_count = 0;
     _delay_ms(500);
+
+    setMotorVelocity(0,0);
 }
 
 //Duty cycle of the motor from 0.0 to 1.0
@@ -70,12 +72,12 @@ void setMotorVelocity(int dutyForearm, int dutyShoulder)
     OCR3B = MIN(MAX(abs(dutyShoulder), 0), 16000);
     if(dutyShoulder < 0)
     {
-        PORTD |= SHOULDER_DIR;
+        PORTD &= ~SHOULDER_DIR;
         PORTD |= SHOULDER_EN;
     }
     else if(dutyShoulder > 0)
     {
-        PORTD &= ~SHOULDER_DIR;
+        PORTD |= SHOULDER_DIR;
         PORTD |= SHOULDER_EN;
     }
     else

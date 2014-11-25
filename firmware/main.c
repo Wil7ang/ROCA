@@ -27,7 +27,7 @@
 
 //PID Control definitions
 #define SHOULDER_P 20
-#define SHOULDER_I 16
+#define SHOULDER_I 10//16
 #define SHOULDER_D 5
 
 #define FOREARM_P 30
@@ -61,7 +61,7 @@
 #define UINT16T_MAX 65536.0f
 
 #define SHOULDER_ENDPOINT_F 962L
-#define SHOULDER_ENDPOINT_B 32L
+#define SHOULDER_ENDPOINT_B 30L
 
 //UART defines
 #define FOSC 16000000// Clock Speed
@@ -199,10 +199,11 @@ motorParameters UpdateControls(int baseAngle, int currentShoulderAngle, int shou
     int16_t shoulderDutySign = (shoulderAngleSet - currentShoulderAngle)/abs(shoulderAngleSet - currentShoulderAngle);
 
     duties.shoulderDuty = shoulderDutySign * shoulderDutyMagnitude;
-    // printf("%i ", duties.shoulderDuty);
+
     duties.shoulderDuty += SHOULDER_I * shoulderIntegral;
-    // printf("%i %i\n", duties.shoulderDuty, shoulderIntegral);
+
     duties.shoulderDuty += SHOULDER_D * shoulderDerivative;
+    printf("%i %i\r\n", duties.shoulderDuty, duties.shoulderDuty + 16 * shoulderIntegral);
 
     return duties;
 }
@@ -237,7 +238,7 @@ int main()
 
     usart_init ( UARTCLOCK );
 
-    int shoulderSetAngle = 900;
+    int shoulderSetAngle = 1350;
     int forearmSetAngle = -400;
 
     int errorHistoryShoulder[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -283,7 +284,7 @@ int main()
         int errorChange = errorHistoryShoulder[errorHistoryShoulderIndex] - errorHistoryShoulder[(errorHistoryShoulderIndex+9)%10];
 
 
-        errorHistoryForearm[errorHistoryForearmIndex] = forearmCurrentAngle - forearmSetAngle;
+        errorHistoryForearm[errorHistoryForearmIndex] = forearmSetAngle - forearmCurrentAngle;
         int errorChangeForearm = errorHistoryForearm[errorHistoryForearmIndex] - errorHistoryForearm[(errorHistoryForearmIndex+9)%10];
 
         errorHistoryShoulderIndex++;
@@ -315,6 +316,8 @@ int main()
                                    errorHistoryForearm[7] +
                                    errorHistoryForearm[8] +
                                    errorHistoryForearm[9])/10;
+
+        //printf("%i\r\n", errorAverage);
 
         motorParameters motorState = UpdateControls(0, 
             shoulderCurrentAngle, 
@@ -364,12 +367,12 @@ int main()
             }
         }
 
-        shoulderSetAngle = MIN(MAX(shoulderSetAngle, -102), 1902);
-        forearmSetAngle = MIN(MAX(forearmSetAngle, -400), 2200);
+        //shoulderSetAngle = MIN(MAX(shoulderSetAngle, -102), 1902);
+        //forearmSetAngle = MIN(MAX(forearmSetAngle, -400), 2200);
 
         //printf("%i %i %i\n", forearmCurrentAngle, forearmSetAngle, motorState.forearmDuty);
-        // printf("%i %i %i %i", ang, shoulderCurrentAngle, shoulderSetAngle, motorState.shoulderDuty);
-
+        //printf("%i %i %i %i\r\n", ang, shoulderCurrentAngle, 2004 - (shoulderSetAngle + 102) - 102, motorState.shoulderDuty);
+        //printf("Ang: %i\r\n", ang);
         // for(j = 0; j < 10; j++)
         // {
         //     printf("%i ", errorHistoryShoulder[j]);
