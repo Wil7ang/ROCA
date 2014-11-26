@@ -16,8 +16,6 @@
 #define CAMERAHEIGHT 480
 #define MAXMOTION 100
 
-//#define CANON
-
 using namespace cv;
 using namespace std;
 
@@ -92,9 +90,6 @@ int main()
 
     namedWindow("result", WINDOW_AUTOSIZE);
     namedWindow("result2", WINDOW_AUTOSIZE);
-    //namedWindow("motion", WINDOW_AUTOSIZE);
-    //namedWindow("d1", WINDOW_AUTOSIZE);
-    //namedWindow("d2", WINDOW_AUTOSIZE);
 
     Mat result;
     Mat prev_frame = result = cvQueryFrame(camera);
@@ -125,8 +120,8 @@ int main()
 
     // Detect motion in window
     int x_start = 0, x_stop = CAMERAWIDTH;
-    int y_start = 0, y_stop = CAMERAHEIGHT;
-    int x_start2 = 0, x_stop2 = CAMERAWIDTH;
+    int y_start = 0, y_stop = 240;
+    int x_start2 = 200, x_stop2 = CAMERAWIDTH-200;
     int y_start2 = 0, y_stop2 = CAMERAHEIGHT;
 
 
@@ -171,28 +166,23 @@ int main()
         threshold(motion, motion, 20, 255, CV_THRESH_BINARY);
         erode(motion, motion, kernel_ero);
 
-
         absdiff(prev_frame2, next_frame2, d12);
         absdiff(next_frame2, current_frame2, d22);
         bitwise_and(d12, d22, motion2);
         threshold(motion2, motion2, 20, 255, CV_THRESH_BINARY);
         erode(motion2, motion2, kernel_ero);
-        //threshold(d1, d1, 20, 255, CV_THRESH_BINARY);
-        //erode(d1, d1, kernel_ero);
+
 
         pair<int, int> pointTemp = detectMotion(motion, result,  x_start, x_stop, y_start, y_stop, max_deviation, color);
-//        if(pointTemp.first !=0 && pointTemp.second !=0)
-//            pointStorage.push_back(pointTemp);
-//        if(pointTemp.first !=0 && pointTemp.second !=0)
-
-
         pair<int, int> pointTemp2 = detectMotion(motion2, result2,  x_start2, x_stop2, y_start2, y_stop2, max_deviation, color);
+
         if(pointTemp2.first !=0 && pointTemp2.second !=0 && pointTemp.first !=0 && pointTemp.second !=0)
         {
             pointStorage2.push_back(pointTemp2);
             pointStorage.push_back(pointTemp);
 
         }
+
         for(unsigned int i = 0; i < pointStorage.size();i++)
         {
             if(i > 0)
@@ -247,70 +237,63 @@ int main()
                 y1 = y2;
             }
         }
+//
+//        if(pointStorage.size() == 3)
+//        {
+//            gotThreePoints = true;
+//        }
+//
+//        if(gotThreePoints)
+//        {
+//            float detA = determinant3x3(pointStorage[0].second, pointStorage[0].first, 1,
+//                                        pointStorage[1].second, pointStorage[1].first, 1,
+//                                        pointStorage[2].second, pointStorage[2].first, 1);
+//
+//            float detB = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].second, 1,
+//                                        pow((float)pointStorage[1].first,2), pointStorage[1].second, 1,
+//                                        pow((float)pointStorage[2].first,2), pointStorage[2].second, 1);
+//
+//            float detC = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, pointStorage[0].second,
+//                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, pointStorage[1].second,
+//                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, pointStorage[2].second);
+//
+//            float detD = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, 1,
+//                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, 1,
+//                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, 1);
+//
+//            float A = detA/detD;
+//            float B = detB/detD;
+//            float C = detC/detD;
+//
+//            float x0 = pointStorage[0].first;
+//            float y0 = pointStorage[0].second;
+//
+//            float x1 = x0;
+//            float y1 = y0;
+//
+//            float dx = 0.0f;
+//            if(pointStorage[2].first < pointStorage[0].first)
+//                dx = -20.0f;
+//            else
+//            {
+//                dx = 20.0f;
+//                //A = -A;
+//            }
+//            for(int j = 0; j < 40; j++)
+//            {
+//                float x2 = x0 + dx * j;
+//                float y2 = A*pow(x2,2) + B*x2 + C;
+//                circle(result, Point(x2,y2), 3, Scalar(0,255,255,1),2);
+//                line(result, Point(x1,y1), Point(x2, y2), Scalar(0,255,0,1), 2);
+//                x1 = x2;
+//                y1 = y2;
+//            }
+//        }
 
-        if(pointStorage.size() == 3)
-        {
-            gotThreePoints = true;
-        }
+        imshow("result",result);
+        imshow("result2",result2);
 
-        if(gotThreePoints)
-        {
-            float detA = determinant3x3(pointStorage[0].second, pointStorage[0].first, 1,
-                                        pointStorage[1].second, pointStorage[1].first, 1,
-                                        pointStorage[2].second, pointStorage[2].first, 1);
-
-            float detB = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].second, 1,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].second, 1,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].second, 1);
-
-            float detC = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, pointStorage[0].second,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, pointStorage[1].second,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, pointStorage[2].second);
-
-            float detD = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, 1,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, 1,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, 1);
-
-            float A = detA/detD;
-            float B = detB/detD;
-            float C = detC/detD;
-
-            float x0 = pointStorage[0].first;
-            float y0 = pointStorage[0].second;
-
-            float x1 = x0;
-            float y1 = y0;
-
-            float dx = 0.0f;
-            if(pointStorage[2].first < pointStorage[0].first)
-                dx = -20.0f;
-            else
-            {
-                dx = 20.0f;
-                //A = -A;
-            }
-            for(int j = 0; j < 40; j++)
-            {
-                float x2 = x0 + dx * j;
-                float y2 = A*pow(x2,2) + B*x2 + C;
-                circle(result, Point(x2,y2), 3, Scalar(0,255,255,1),2);
-                line(result, Point(x1,y1), Point(x2, y2), Scalar(0,255,0,1), 2);
-                x1 = x2;
-                y1 = y2;
-            }
-        }
-
-        //imshow("motion",motion);
-        //imshow("d1",d1);
-        //imshow("d2",d2);
-        counter++;
-        //if(counter >= 100)
-        {
-            imshow("result",result);
-            imshow("result2",result2);
-            counter = 0;
-        }
-        int key = waitKey(30);
+        int key = waitKey(1);
         if(key == 97)
         {
             break;
@@ -319,25 +302,9 @@ int main()
         {
             pointStorage.clear();
             pointStorage2.clear();
-            //            gotTwoPoints = false;
-            gotThreePoints = false;
-//            gotTwoPoints = false;
-            //            curTime = 0;
-            //            dt = 0.0f;
+//            gotThreePoints = false;
         }
-        //        else if(pointStorage.size()>=2 && pointStorage[pointStorage.size()-1].first < pointStorage[pointStorage.size()-2].first-200)
-        //        {
-        //            pair<int,int> tStorage = pointStorage[pointStorage.size()-1];
-        //            pointStorage.clear();
-        //            pointStorage.push_back(tStorage);
-        //        }
     }
-#ifdef CANON
-    onoff = 0;
-    gp_widget_set_value(child, &onoff);
-    gp_camera_set_config(canon, widget, canonContext);
 
-    gp_camera_exit(canon, canonContext);
-#endif
     return 0;
 }
