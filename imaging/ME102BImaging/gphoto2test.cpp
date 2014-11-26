@@ -82,11 +82,11 @@ float determinant3x3(float a, float b, float c,
 
 int main()
 {
-    CvCapture * camera = cvCaptureFromCAM(1);
+    CvCapture * camera = cvCaptureFromCAM(2);
     cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
     cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
 
-    CvCapture * camera2 = cvCaptureFromCAM(0);
+    CvCapture * camera2 = cvCaptureFromCAM(1);
     cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
     cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
 
@@ -125,8 +125,8 @@ int main()
 
     // Detect motion in window
     int x_start = 0, x_stop = CAMERAWIDTH;
-    int y_start = 0, y_stop = 340;
-    int x_start2 = 200, x_stop2 = CAMERAWIDTH-200;
+    int y_start = 0, y_stop = CAMERAHEIGHT;
+    int x_start2 = 0, x_stop2 = CAMERAWIDTH;
     int y_start2 = 0, y_stop2 = CAMERAHEIGHT;
 
 
@@ -183,12 +183,15 @@ int main()
         pair<int, int> pointTemp = detectMotion(motion, result,  x_start, x_stop, y_start, y_stop, max_deviation, color);
 //        if(pointTemp.first !=0 && pointTemp.second !=0)
 //            pointStorage.push_back(pointTemp);
+//        if(pointTemp.first !=0 && pointTemp.second !=0)
+
 
         pair<int, int> pointTemp2 = detectMotion(motion2, result2,  x_start2, x_stop2, y_start2, y_stop2, max_deviation, color);
         if(pointTemp2.first !=0 && pointTemp2.second !=0 && pointTemp.first !=0 && pointTemp.second !=0)
         {
             pointStorage2.push_back(pointTemp2);
             pointStorage.push_back(pointTemp);
+
         }
         for(unsigned int i = 0; i < pointStorage.size();i++)
         {
@@ -200,6 +203,11 @@ int main()
             double realX=0.0,realY=0.0,realZ=0.0;
             GetRealWorldCoordinates(realX,realY,realZ,pointStorage[i].first,pointStorage[i].second,pointStorage2[i].first,pointStorage2[i].second);
             putText(result,to_string(realX)+","+to_string(realY)+","+to_string(realZ),Point(pointStorage[i].first,pointStorage[i].second+30),1,1,Scalar(0,255,0),2);
+        }
+
+
+        for(unsigned int i = 0; i < pointStorage2.size();i++)
+        {
 
             if(i > 0)
             {
@@ -302,18 +310,18 @@ int main()
             imshow("result2",result2);
             counter = 0;
         }
-
-        if(waitKey(30) == 27)
+        int key = waitKey(30);
+        if(key == 97)
         {
             break;
         }
-        else if(waitKey(30) != -1)
+        else if(key == 27)
         {
             pointStorage.clear();
             pointStorage2.clear();
             //            gotTwoPoints = false;
             gotThreePoints = false;
-            gotTwoPoints = false;
+//            gotTwoPoints = false;
             //            curTime = 0;
             //            dt = 0.0f;
         }
