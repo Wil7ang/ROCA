@@ -29,23 +29,23 @@ def moveArm(base, shoulder, elbow, wristA, wristB):
     WRISTA = 84
     WRISTB = 85
 
-    try:
-        connection = Serial(port=sys.argv[1], baudrate=19200, timeout=1)
+    #try:
+    connection = Serial(port=sys.argv[1], baudrate=19200, timeout=1)
+    print getMoveCommandString(SHOULDER, int(shoulder))
+    connection.write(getMoveCommandString(BASE, int(base)).decode('string_escape'))
+    time.sleep(0.05)
+    connection.write(getMoveCommandString(SHOULDER, int(shoulder)).decode('string_escape'))
+    time.sleep(0.05)
+    connection.write(getMoveCommandString(ELBOW, int(elbow)).decode('string_escape'))
+    time.sleep(0.05)
+    connection.write(getMoveCommandString(WRISTA, int(wristA)).decode('string_escape'))
+    time.sleep(0.05)
+    connection.write(getMoveCommandString(WRISTB, int(wristB)).decode('string_escape'))
+    time.sleep(0.05)
 
-        connection.write(getMoveCommandString(BASE, int(base).decode('string_escape'))
-        time.sleep(0.02)
-        connection.write(getMoveCommandString(SHOULDER, int(shoulder).decode('string_escape'))
-        time.sleep(0.02)
-        connection.write(getMoveCommandString(ELBOW, int(elbow).decode('string_escape'))
-        time.sleep(0.02)
-        connection.write(getMoveCommandString(WRISTA, int(wristA).decode('string_escape'))
-        time.sleep(0.02)
-        connection.write(getMoveCommandString(WRISTB, int(wristB).decode('string_escape'))
-        time.sleep(0.02)
-
-        connection.close()
-    except Exception:
-        print "Failed to open serial port!"
+    connection.close()
+    # except Exception:
+    #     print "Failed to open serial port!"
 
 if(len(sys.argv) == 7):
     moveArm(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
