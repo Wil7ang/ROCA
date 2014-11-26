@@ -1,3 +1,8 @@
+#ifdef CANON
+#include <gphoto2/gphoto2.h>
+#include <gphoto2/gphoto2-camera.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstdlib>
@@ -10,8 +15,6 @@
 #include <time.h>
 #include <cmath>
 
-#include "realWorld.h"
-
 #define CAMERAWIDTH 640
 #define CAMERAHEIGHT 480
 #define MAXMOTION 100
@@ -21,7 +24,12 @@
 using namespace cv;
 using namespace std;
 
-#include <unistd.h>
+#ifdef CANON
+static void errordumper(GPLogLevel level, const char *domain, const char *str, void *data)
+{
+    printf("%s (data %p)", str, data);
+}
+#endif
 
 // Check if there is motion in the result matrix
 // count the number of changes and return.
@@ -31,8 +39,8 @@ pair<int,int> detectMotion(const Mat & motion, Mat & result,
                            Scalar & color)
 {
     // calculate the standard deviation
-    Scalar mean, stddev;
-    meanStdDev(motion, mean, stddev);
+    mean, stddev;
+    cv2.meanStdDev(motion, mean, stddev);
     // if not to much changes then the motion is real (neglect agressive snow, temporary sunlight)
     if(stddev[0] < max_deviation)
     {
@@ -82,11 +90,11 @@ float determinant3x3(float a, float b, float c,
 
 int main()
 {
-    CvCapture * camera = cvCaptureFromCAM(1);
+    CvCapture * camera = cvCaptureFromCAM(0);
     cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
     cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
 
-    CvCapture * camera2 = cvCaptureFromCAM(0);
+    CvCapture * camera2 = cvCaptureFromCAM(1);
     cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
     cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
 
@@ -152,11 +160,12 @@ int main()
 
         prev_frame2 = current_frame2;
         current_frame2 = next_frame2;
-
+#ifdef CANON
+        next_frame = GetCameraImage(canon, canonContext);
+#else
         next_frame = cvQueryFrame(camera);
-        usleep(20000);
         next_frame2 = cvQueryFrame(camera2);
-
+#endif
         result = next_frame;
         cvtColor(next_frame, next_frame, CV_RGB2GRAY);
 
@@ -191,20 +200,19 @@ int main()
             pointStorage.push_back(pointTemp);
         }
         for(unsigned int i = 0; i < pointStorage.size();i++)
+        {   if(i > 0)
         {
-            if(i > 0)
-            {
-                line(result, Point(pointStorage[i].first,pointStorage[i].second),Point(pointStorage[i-1].first,pointStorage[i-1].second), Scalar(0,0,255,1), 2);
-            }
+            line(result, Point(pointStorage[i].first,pointStorage[i].second),Point(pointStorage[i-1].first,pointStorage[i-1].second), Scalar(0,0,255,1), 2);
+        }
             circle(result, Point(pointStorage[i].first,pointStorage[i].second), 3, Scalar(255,0,0,1), 2);
-            double realX=0.0,realY=0.0,realZ=0.0;
-            GetRealWorldCoordinates(realX,realY,realZ,pointStorage[i].first,pointStorage[i].second,pointStorage2[i].first,pointStorage2[i].second);
-            putText(result,to_string(realX)+","+to_string(realY)+","+to_string(realZ),Point(pointStorage[i].first,pointStorage[i].second+30),1,1,Scalar(0,255,0),2);
+        }
 
-            if(i > 0)
-            {
-                line(result2, Point(pointStorage2[i].first,pointStorage2[i].second),Point(pointStorage2[i-1].first,pointStorage2[i-1].second), Scalar(0,0,255,1), 2);
-            }
+
+        for(unsigned int i = 0; i < pointStorage2.size();i++)
+        {   if(i > 0)
+        {
+            line(result2, Point(pointStorage2[i].first,pointStorage2[i].second),Point(pointStorage2[i-1].first,pointStorage2[i-1].second), Scalar(0,0,255,1), 2);
+        }
             circle(result2, Point(pointStorage2[i].first,pointStorage2[i].second), 3, Scalar(255,0,0,1), 2);
         }
 

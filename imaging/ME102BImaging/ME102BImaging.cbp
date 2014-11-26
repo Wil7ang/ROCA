@@ -19,8 +19,6 @@
 					<Add library="opencv_core" />
 					<Add library="opencv_highgui" />
 					<Add library="opencv_imgproc" />
-					<Add library="gphoto2" />
-					<Add library="gphoto2_port" />
 				</Linker>
 			</Target>
 			<Target title="Release">
