@@ -1,0 +1,26 @@
+# depslib dependency file v1.0
+1412827600 source:/home/wil7ang/Development/ME102BImaging/main.cpp
+	<iostream>
+	<fstream>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<time.h>
+	<dirent.h>
+	<sstream>
+	<dirent.h>
+	<sys/types.h>
+	<sys/stat.h>
+
+1416967275 source:/home/wil7ang/Development/ME102BImaging/gphoto2test.cpp
+	<gphoto2/gphoto2.h>
+	<gphoto2/gphoto2-camera.h>
+	<stdio.h>
+	<stdlib.h>
+	<cstdlib>
+	<unistd.h>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<vector>
+	<time.h>
+	<cmath>
+
