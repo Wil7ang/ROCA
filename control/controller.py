@@ -31,7 +31,7 @@ def moveArm(base, shoulder, elbow, wristA, wristB):
 
     #try:
     connection = Serial(port=sys.argv[1], baudrate=19200, timeout=1)
-    print getMoveCommandString(SHOULDER, int(shoulder))
+    print getMoveCommandString(BASE, int(base))
     connection.write(getMoveCommandString(BASE, int(base)).decode('string_escape'))
     time.sleep(0.05)
     connection.write(getMoveCommandString(SHOULDER, int(shoulder)).decode('string_escape'))
