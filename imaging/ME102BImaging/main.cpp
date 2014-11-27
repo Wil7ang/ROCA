@@ -1,412 +1,206 @@
-#ifdef CANON
-#include <gphoto2/gphoto2.h>
-#include <gphoto2/gphoto2-camera.h>
-#endif
-
+#include <SerialStream.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <cstdlib>
 #include <unistd.h>
 
-#include "opencv2/opencv.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <iostream>
 
-#include <vector>
-#include <time.h>
 #include <cmath>
+#include <complex>
 
-#define CAMERAWIDTH 640
-#define CAMERAHEIGHT 480
-#define MAXMOTION 80
-
-//#define CANON
-
-using namespace cv;
+using namespace LibSerial;
 using namespace std;
 
-#ifdef CANON
-static void errordumper(GPLogLevel level, const char *domain, const char *str, void *data)
+void moveROCA(SerialStream &connection, int16_t base, int16_t shoulder, int16_t elbow, int16_t wristA, int16_t wristB)
 {
-    printf("%s (data %p)", str, data);
-}
-#endif
+    int i = 0;
+    unsigned char command[15] = {0x81, (base>>8) & 0xFF, base & 0xFF,
+                                 0x82, (shoulder>>8) & 0xFF, shoulder & 0xFF,
+                                 0x83, (elbow>>8) & 0xFF, elbow & 0xFF,
+                                 0x84, (wristA>>8) & 0xFF, wristA & 0xFF,
+                                 0x85, (wristB>>8) & 0xFF, wristB & 0xFF,};
 
-// Check if there is motion in the result matrix
-// count the number of changes and return.
-pair<int,int> detectMotion(const Mat & motion, Mat & result,
-                           int x_start, int x_stop, int y_start, int y_stop,
-                           int max_deviation,
-                           Scalar & color)
-{
-    // calculate the standard deviation
-    Scalar mean, stddev;
-    meanStdDev(motion, mean, stddev);
-    // if not to much changes then the motion is real (neglect agressive snow, temporary sunlight)
-    if(stddev[0] < max_deviation)
+    for(i = 0;i<16;i+=3)
     {
+        connection << command[i];
+        usleep(10000);
+        connection << command[i+1];
+        usleep(10000);
+        connection << command[i+2];
+        usleep(10000);
+    }
+}
 
-        int number_of_changes = 0;
-        int min_x = motion.cols, max_x = 0;
-        int min_y = motion.rows, max_y = 0;
-        // loop over image and detect changes
-        for(int j = y_start; j < y_stop; j+=2){ // height
-            for(int i = x_start; i < x_stop; i+=2){ // width
-                // check if at pixel (j,i) intensity is equal to 255
-                // this means that the pixel is different in the sequence
-                // of images (prev_frame, current_frame, next_frame)
-                if(static_cast<int>(motion.at<uchar>(j,i)) == 255)
-                {
-                    number_of_changes++;
-                    if(min_x>i) min_x = i;
-                    if(max_x<i) max_x = i;
-                    if(min_y>j) min_y = j;
-                    if(max_y<j) max_y = j;
-                }
-            }
+#define FOREARM_LENGTH 0.290
+#define UPPERARM_LENGTH 0.215
+#define ARM_HOME_POSITION_RADIUS 0.361 //sqrt(FOREARM_LENGTH^2 + UPPERARM_LENGTH^2)
+#define REACHABLE_RADIUS FOREARM_LENGTH+UPPERARM_LENGTH
+#define GRAVITY 9.8
+
+struct Point3DD
+{
+    Point3DD(){ x = y = z = 0.0;}
+    Point3DD(double x_, double y_, double z_){x = x_;y=y_;z=z_;}
+    ~Point3DD(){}
+    double x;
+    double y;
+    double z;
+};
+
+vector<complex<double> > CubicSolver(complex<double> a, complex<double> b, complex<double> c, complex<double> d)
+{
+    complex<double> f = ((3.0*c/a) - (pow(b,2.0)/pow(a,2.0)))/3.0;
+    complex<double> g = ((2.0*pow(b,3.0)/pow(a,3.0))-(9.0*b*c/pow(a,2.0))+(27.0*d/a))/27.0;
+    complex<double> h = (pow(g,2.0)/4.0)+(pow(f,3.0)/27.0);
+
+    complex<double> imaginary(0,1);
+
+    if(h.real() > 0.0 || h.imag() > 0.0)
+    {
+        complex<double> R = -(g/2.0) + sqrt(h);
+        complex<double> S = pow(R,1.0/3.0);
+        complex<double> T = -(g/2.0) - sqrt(h);
+        complex<double> U = pow(T,1.0/3.0);
+
+        vector<complex<double> > solutions;
+        solutions.push_back((S+U) - (b/(3.0*a)));
+        solutions.push_back(-(S+U)/2.0 - (b/(3.0*a)) + imaginary*(S-U)*sqrt(3.0)/2.0);
+        solutions.push_back(-(S+U)/2.0 - (b/(3.0*a)) - imaginary*(S-U)*sqrt(3.0)/2.0);
+
+        return solutions;
+    }
+    else if(h.real() <=0 && h.imag() == 0 &&
+            f.real() != 0 && f.imag() != 0 &&
+            g.real() != 0 && g.imag() != 0)
+    {
+        complex<double> i = sqrt((pow(g,2.0)/4.0)-h);
+        complex<double> j = pow(i,1.0/3.0);
+        complex<double> k = acos(-(g/(2.0*i)));
+        complex<double> L = -j;
+        complex<double> M = cos(k/3.0);
+        complex<double> N = sqrt(3.0)*sin(k/3.0);
+        complex<double> P = -(b/(3.0*a));
+
+        vector<complex<double> > solutions;
+        solutions.push_back(2.0*imaginary*M - (b/(3.0*a)));
+        solutions.push_back(-imaginary*(M+N)+P);
+        solutions.push_back(L*(M-N)+P);
+
+        return solutions;
+    }
+    else
+    {
+        vector<complex<double> > solutions;
+        solutions.push_back(-pow(d/a,1.0/3.0));
+        solutions.push_back(-pow(d/a,1.0/3.0));
+        solutions.push_back(-pow(d/a,1.0/3.0));
+
+        return solutions;
+    }
+}
+
+vector<complex<double> > QuarticSolver(double a, double b, double c, double d, double e)
+{
+    int i = 0;
+
+    e = e/a;
+    d = d/a;
+    c = c/a;
+    b = b/a;
+    a = 1.0;
+
+    complex<double> f = c - (3.0*pow(b,2)/8.0);
+    complex<double> g = d + (pow(b,3.0)/8.0) - (b*c/2.0);
+    complex<double> h = e - (3.0*pow(b,4.0)/256.0) + (pow(b,2.0)*c/16.0) - (b*d/4.0);
+
+    complex<double> A = f/2.0;
+    complex<double> B = (pow(f,2.0)-4.0*h)/16.0;
+    complex<double> C = -pow(g,2.0)/64.0;
+
+    vector<complex<double> > Y = CubicSolver(1.0, A, B, C);
+
+    complex<double> p = 0.0;
+    complex<double> q = 0.0;
+
+    double compareValue = 0.00000001;
+
+    for(i = 0; i<Y.size();i++)
+    {
+        if(p.real() == 0 && p.imag() == 0 && abs(-Y[i]) > 0.0)
+        {
+            p = sqrt(Y[i]);
+            continue;
         }
-        if(number_of_changes){
-            //check if not out of bounds
-            if(min_x-10 > 0) min_x -= 10;
-            if(min_y-10 > 0) min_y -= 10;
-            if(max_x+10 < result.cols-1) max_x += 10;
-            if(max_y+10 < result.rows-1) max_y += 10;
-            // draw rectangle round the changed pixel
-            Point x(min_x,min_y);
-            Point y(max_x,max_y);
-            Rect rect(x,y);
-            rectangle(result,rect,color,1);
-            return pair<int,int>(min_x+(max_x-min_x)/2,min_y+(max_y-min_y)/2);
+
+        if(q.real() == 0 && q.imag() == 0 && abs(-Y[i]) > 0.0)
+        {
+            q = sqrt(Y[i]);
+            break;
         }
     }
-    return pair<int,int>(0,0);
+
+    complex<double> r = -g/(8.0*p*q);
+    complex<double> s = b/(4.0*a);
+
+    vector<complex<double> > solutions;
+    solutions.push_back(p+q+r-s);
+    solutions.push_back(p-q-r-s);
+    solutions.push_back(-p+q-r-s);
+    solutions.push_back(-p-q+r-s);
+
+    return solutions;
 }
 
-#ifdef CANON
-Mat GetCameraImage(Camera *cam, GPContext *context)
+Point3DD FindImpactPoint(double v_xi, double v_yi, double v_zi, double x_0, double y_0, double z_0, double R)
 {
-    CameraFile *file = NULL;
-    gp_file_new(&file);
-    gp_camera_capture_preview(cam, file, context);
+    int i = 0;
 
-    const char *data = NULL;
-    unsigned long int siz;
-    gp_file_get_data_and_size(file, &data, &siz);
+    double a = (1.0/4.0) * pow(GRAVITY, 2);
+    double b = -GRAVITY*v_zi;
+    double c = pow(v_xi,2) + pow(v_yi,2) + pow(v_zi,2) - GRAVITY*z_0;
+    double d = 2*v_xi*x_0 + 2*v_yi*y_0 + 2*v_zi*z_0;
+    double e = pow(x_0,2) + pow(y_0,2) + pow(z_0,2) - pow((R-0.001),2);
 
-    vector<char> vdat(data, data+siz);
-    gp_file_unref(file);
-    file = NULL;
+    vector<complex<double> > solutions = QuarticSolver(a,b,c,d,e);
 
-    return imdecode(Mat(vdat), CV_LOAD_IMAGE_ANYCOLOR);
+    double maxTime = 99999;
+    double compareValue = 0.000001;
+
+    for(i = 0; i<solutions.size();i++)
+    {
+        if(abs(solutions[i].imag()) <= compareValue && solutions[i].real() < maxTime)
+            maxTime = solutions[i].real();
+    }
+
+    if(maxTime < 10.0)
+        return Point3DD( (v_xi*maxTime + x_0),
+                         (v_yi*maxTime + y_0),
+                         (-0.5*GRAVITY*pow(maxTime,2.0) + v_zi*maxTime + z_0));
+    else
+        return Point3DD(-1,-1,-1);
 }
-#endif
 
-float determinant3x3(float a, float b, float c,
-                     float d, float e, float f,
-                     float g, float h, float i)
+Point3DD FindCatchLocation(double v_xi, double v_yi, double v_zi, double x_0, double y_0, double z_0)
 {
-    return a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g;
+    return FindImpactPoint(v_xi,v_yi,v_zi,x_0,y_0,z_0,REACHABLE_RADIUS+0.2);
 }
 
 int main()
 {
-#ifdef CANON
-    Camera *canon;
-    GPContext *canonContext = gp_context_new();
-    gp_camera_new(&canon);
-    //gp_log_add_func(GP_LOG_ERROR, errordumper, 0);
-    int retval = gp_camera_init(canon, canonContext);
+    Point3DD location = FindCatchLocation(-7.0,0.0,6.45,9.0,0.0,0.0);
+    printf("%f %f %f", location.x, location.y, location.z);
 
-    if(retval != GP_OK)
-    {
-        printf("%i\n", retval);
-        return -1;
-    }
-
-
-    CameraWidget *widget = NULL;
-    CameraWidget *child = NULL;
-    CameraWidgetType type;
-
-    int onoff = 1;
-    gp_camera_get_config(canon, &widget, canonContext);
-    gp_widget_get_child_by_name(widget, "eosviewfinder", &child);
-    gp_widget_get_type(child, &type);
-    gp_widget_set_value(child, &onoff);
-    gp_camera_set_config(canon, widget, canonContext);
-
-    sleep(2);
-
-    Mat result;
-    Mat prev_frame = result = GetCameraImage(canon, canonContext);
-    Mat current_frame = GetCameraImage(canon, canonContext);
-    Mat next_frame = GetCameraImage(canon, canonContext);
-#else
-    CvCapture * camera = cvCaptureFromCAM(0);
-    cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
-    cvSetCaptureProperty(camera, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
-
-    CvCapture * camera2 = cvCaptureFromCAM(2);
-    cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
-    cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
-
-    namedWindow("result", WINDOW_AUTOSIZE);
-    namedWindow("result2", WINDOW_AUTOSIZE);
-    //namedWindow("motion", WINDOW_AUTOSIZE);
-    //namedWindow("d1", WINDOW_AUTOSIZE);
-    //namedWindow("d2", WINDOW_AUTOSIZE);
-
-    Mat result;
-    Mat prev_frame = result = cvQueryFrame(camera);
-    Mat current_frame = cvQueryFrame(camera);
-    Mat next_frame = cvQueryFrame(camera);
-
-    Mat result2;
-    Mat prev_frame2 = result2 = cvQueryFrame(camera2);
-    Mat current_frame2 = cvQueryFrame(camera2);
-    Mat next_frame2 = cvQueryFrame(camera2);
-#endif
-
-
-    cvtColor(current_frame, current_frame, CV_RGB2GRAY);
-    cvtColor(prev_frame, prev_frame, CV_RGB2GRAY);
-    cvtColor(next_frame, next_frame, CV_RGB2GRAY);
-
-    cvtColor(current_frame2, current_frame2, CV_RGB2GRAY);
-    cvtColor(prev_frame2, prev_frame2, CV_RGB2GRAY);
-    cvtColor(next_frame2, next_frame2, CV_RGB2GRAY);
-
-    Mat referenceFrame = current_frame;
-
-    Mat d1, d2, motion;
-    Mat d12, d22, motion2;
-    int number_of_changes, number_of_sequence = 0;
-    Scalar mean_, color(0,255,255); // yellow
-
-    // Detect motion in window
-    int x_start = 0, x_stop = CAMERAWIDTH;
-    int y_start = 0, y_stop = CAMERAHEIGHT;
-
-
-    // Maximum deviation of the image, the higher the value, the more motion is allowed
-    int max_deviation = MAXMOTION;
-
-    // Erode kernel
-    Mat kernel_ero = getStructuringElement(MORPH_RECT, Size(4,4));
-    vector<pair<int,int> > pointStorage;
-    vector<pair<int,int> > pointStorage2;
-
-    //    clock_t curTime = 0;
-    //    bool gotTwoPoints = false;
-    bool gotThreePoints = false;
-    bool gotTwoPoints = false;
-    //    float dt = 0.0f;
-    while(true)
-    {
-        // Take a new image
-        prev_frame = current_frame;
-        current_frame = next_frame;
-
-        prev_frame2 = current_frame2;
-        current_frame2 = next_frame2;
-#ifdef CANON
-        next_frame = GetCameraImage(canon, canonContext);
-#else
-        next_frame = cvQueryFrame(camera);
-        next_frame2 = cvQueryFrame(camera2);
-#endif
-        result = next_frame;
-        cvtColor(next_frame, next_frame, CV_RGB2GRAY);
-
-        result2 = next_frame2;
-        cvtColor(next_frame2, next_frame2, CV_RGB2GRAY);
-
-        // Calc differences between the images and do AND-operation
-        // threshold image, low differences are ignored (ex. contrast change due to sunlight)
-        absdiff(prev_frame, next_frame, d1);
-        absdiff(next_frame, current_frame, d2);
-        bitwise_and(d1, d2, motion);
-        threshold(motion, motion, 20, 255, CV_THRESH_BINARY);
-        erode(motion, motion, kernel_ero);
-
-
-        absdiff(prev_frame2, next_frame2, d12);
-        absdiff(next_frame2, current_frame2, d22);
-        bitwise_and(d12, d22, motion2);
-        threshold(motion2, motion2, 20, 255, CV_THRESH_BINARY);
-        erode(motion2, motion2, kernel_ero);
-        //threshold(d1, d1, 20, 255, CV_THRESH_BINARY);
-        //erode(d1, d1, kernel_ero);
-
-        pair<int, int> pointTemp = detectMotion(motion, result,  x_start, x_stop, y_start, y_stop, max_deviation, color);
-        if(pointTemp.first !=0 && pointTemp.second !=0)
-            pointStorage.push_back(pointTemp);
-        for(unsigned int i = 0; i < pointStorage.size();i++)
-        {   if(i > 0)
-        {
-            line(result, Point(pointStorage[i].first,pointStorage[i].second),Point(pointStorage[i-1].first,pointStorage[i-1].second), Scalar(0,0,255,1), 2);
-        }
-            circle(result, Point(pointStorage[i].first,pointStorage[i].second), 3, Scalar(255,0,0,1), 2);
-        }
-
-        pair<int, int> pointTemp2 = detectMotion(motion2, result2,  x_start, x_stop, y_start, y_stop, max_deviation, color);
-        if(pointTemp2.first !=0 && pointTemp2.second !=0)
-            pointStorage2.push_back(pointTemp2);
-        for(unsigned int i = 0; i < pointStorage2.size();i++)
-        {   if(i > 0)
-        {
-            line(result2, Point(pointStorage2[i].first,pointStorage2[i].second),Point(pointStorage2[i-1].first,pointStorage2[i-1].second), Scalar(0,0,255,1), 2);
-        }
-            circle(result2, Point(pointStorage2[i].first,pointStorage2[i].second), 3, Scalar(255,0,0,1), 2);
-        }
-        //        if(pointStorage.size() == 1 && curTime == 0)
-        //        {
-        //            curTime = clock();
-        //        }
-        //        if(pointStorage.size() == 2 && !gotTwoPoints)
-        //        {
-        //            dt = ((float)(clock()-curTime))/CLOCKS_PER_SEC;
-        //            gotTwoPoints = true;
-        //        }
-
-        if(pointStorage2.size() == 2)
-        {
-            gotTwoPoints = true;
-        }
-
-        if(gotTwoPoints)
-        {
-            float x0 = pointStorage2[0].first;
-            float y0 = pointStorage2[0].second;
-
-            float x1 = x0;
-            float y1 = y0;
-
-            float dx = 0.0f;
-            if(pointStorage2[1].first < pointStorage2[0].first)
-                dx = -20.0f;
-            else
-            {
-                dx = 20.0f;
-                //A = -A;
-            }
-            for(int j = 0; j < 40; j++)
-            {
-                float x2 = x0 + dx * j;
-                float y2 = y0 + j * dx * (pointStorage2[1].second - pointStorage2[0].second)/(pointStorage2[1].first - pointStorage2[0].first);
-                circle(result2, Point(x2,y2), 3, Scalar(0,255,255,1),2);
-                line(result2, Point(x1,y1), Point(x2, y2), Scalar(0,255,0,1), 2);
-                x1 = x2;
-                y1 = y2;
-            }
-        }
-
-        if(pointStorage.size() == 3)
-        {
-            gotThreePoints = true;
-        }
-
-        if(gotThreePoints)
-        {
-            float detA = determinant3x3(pointStorage[0].second, pointStorage[0].first, 1,
-                                        pointStorage[1].second, pointStorage[1].first, 1,
-                                        pointStorage[2].second, pointStorage[2].first, 1);
-
-            float detB = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].second, 1,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].second, 1,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].second, 1);
-
-            float detC = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, pointStorage[0].second,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, pointStorage[1].second,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, pointStorage[2].second);
-
-            float detD = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, 1,
-                                        pow((float)pointStorage[1].first,2), pointStorage[1].first, 1,
-                                        pow((float)pointStorage[2].first,2), pointStorage[2].first, 1);
-
-            float A = detA/detD;
-            float B = detB/detD;
-            float C = detC/detD;
-
-            float x0 = pointStorage[0].first;
-            float y0 = pointStorage[0].second;
-
-            float x1 = x0;
-            float y1 = y0;
-
-            float dx = 0.0f;
-            if(pointStorage[2].first < pointStorage[0].first)
-                dx = -20.0f;
-            else
-            {
-                dx = 20.0f;
-                //A = -A;
-            }
-            for(int j = 0; j < 40; j++)
-            {
-                float x2 = x0 + dx * j;
-                float y2 = A*pow(x2,2) + B*x2 + C;
-                circle(result, Point(x2,y2), 3, Scalar(0,255,255,1),2);
-                line(result, Point(x1,y1), Point(x2, y2), Scalar(0,255,0,1), 2);
-                x1 = x2;
-                y1 = y2;
-            }
-        }
-
-        //        if(gotTwoPoints)
-        //        {
-        //            float velocityY = (pointStorage[1].second - pointStorage[0].second)/dt;
-        //            float velocityX = (pointStorage[1].first - pointStorage[0].first)/dt;
-        //
-        //            float x0 = pointStorage[1].first;
-        //            float y0 = pointStorage[1].second;
-        //
-        //            float x1 = x0;
-        //            float y1 = y0;
-        //            //Calculate parabola here
-        //            for(float j = 0.0f; j < 2.0f; j+=0.01)
-        //            {
-        //                float x2 = x0 + velocityX * j;
-        //                float y2 = 0.5 * 11000 * pow(j,2) + velocityY * j + y0;
-        //                circle(result, Point(x2, y2), 3, Scalar(0,255,255,1), 2);
-        //                line(result, Point(x1, y1), Point(x2, y2), Scalar(0,255,0,1), 2);
-        //                x1 = x2;
-        //                y1 = y2;
-        //            }
-        //        }
-
-        //imshow("motion",motion);
-        //imshow("d1",d1);
-        //imshow("d2",d2);
-
-        imshow("result",result);
-        imshow("result2",result2);
-        if(waitKey(30) == 27)
-        {
-            break;
-        }
-        else if(waitKey(30) != -1)
-        {
-            pointStorage.clear();
-            pointStorage2.clear();
-            //            gotTwoPoints = false;
-            gotThreePoints = false;
-            gotTwoPoints = false;
-            //            curTime = 0;
-            //            dt = 0.0f;
-        }
-        //        else if(pointStorage.size()>=2 && pointStorage[pointStorage.size()-1].first < pointStorage[pointStorage.size()-2].first-200)
-        //        {
-        //            pair<int,int> tStorage = pointStorage[pointStorage.size()-1];
-        //            pointStorage.clear();
-        //            pointStorage.push_back(tStorage);
-        //        }
-    }
-#ifdef CANON
-    onoff = 0;
-    gp_widget_set_value(child, &onoff);
-    gp_camera_set_config(canon, widget, canonContext);
-
-    gp_camera_exit(canon, canonContext);
-#endif
-    return 0;
+//    SerialStream rocaConnection( "/dev/ttyUSB0",
+//                            SerialStreamBuf::BAUD_19200,
+//                            SerialStreamBuf::CHAR_SIZE_8,
+//                            SerialStreamBuf::PARITY_NONE,
+//                            1,
+//                           SerialStreamBuf::FLOW_CONTROL_NONE );
+//
+//    if(!rocaConnection.IsOpen())
+//    {
+//        printf("Failed to open serial port!\n");
+//        return -1;
+//    }
+//
+//    rocaConnection.Close();
 }

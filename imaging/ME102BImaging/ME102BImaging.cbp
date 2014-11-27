@@ -19,6 +19,7 @@
 					<Add library="opencv_core" />
 					<Add library="opencv_highgui" />
 					<Add library="opencv_imgproc" />
+					<Add library="serial" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -37,11 +38,11 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="gphoto2test.cpp" />
-		<Unit filename="main.cpp">
+		<Unit filename="gphoto2test.cpp">
 			<Option compile="0" />
 			<Option link="0" />
 		</Unit>
+		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
