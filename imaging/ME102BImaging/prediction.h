@@ -19,6 +19,27 @@ struct Point3DD
     double z;
 };
 
+struct ArmAngles
+{
+    ArmAngles(){valid=base=shoulder=elbow=wristA=wristB=0;}
+    ArmAngles(int base_, int shoulder_, int elbow_, int wristA_, int wristB_)
+    {
+        base = base_;
+        shoulder = shoulder_;
+        elbow = elbow_;
+        wristA = wristA_;
+        wristB = wristB_;
+        valid = true;
+    }
+    ~ArmAngles(){}
+    int base;
+    int shoulder;
+    int elbow;
+    int wristA;
+    int wristB;
+    bool valid;
+};
+
 vector<complex<double> > CubicSolver(complex<double> a, complex<double> b, complex<double> c, complex<double> d)
 {
     complex<double> f = ((3.0*c/a) - (pow(b,2.0)/pow(a,2.0)))/3.0;
@@ -154,6 +175,46 @@ Point3DD FindImpactPoint(double v_xi, double v_yi, double v_zi, double x_0, doub
 
 Point3DD FindCatchLocation(double v_xi, double v_yi, double v_zi, double x_0, double y_0, double z_0)
 {
-    return FindImpactPoint(v_xi,v_yi,v_zi,x_0,y_0,z_0,REACHABLE_RADIUS+0.2);
+    return FindImpactPoint(v_xi,v_yi,v_zi,x_0,y_0,z_0,REACHABLE_RADIUS-0.2);
 }
 
+//Analytical IK Solver
+ArmAngles GetArmAngles(Point3DD position)
+{
+    double d = sqrt(pow(position.x,2) + pow(position.y,2) + pow(position.z,2));
+
+    if(d <= REACHABLE_RADIUS && d > UPPERARM_LENGTH)
+    {
+        double a = acos((pow(d,2) + pow(UPPERARM_LENGTH,2) - pow(FOREARM_LENGTH,2))/(2*d*UPPERARM_LENGTH));
+        double A = atan(position.z/sqrt(pow(position.x,2)+pow(position.y,2)));
+
+        double b = acos((pow(FOREARM_LENGTH,2) + pow(UPPERARM_LENGTH,2) - pow(d,2))/(2*UPPERARM_LENGTH*FOREARM_LENGTH));
+        double alph = 2*M_PI - M_PI/2 - b;
+        double gamma = 0;
+
+        double beta = A + a;
+        alph = M_PI - alph;
+
+        if(position.y > 0)
+        {
+            gamma = atan(position.x/position.y);
+        }
+        else if(position.y >= 0 && position.x > 0)
+        {
+            gamma = M_PI/2 - atan(position.y/position.x);
+        }
+        else
+        {
+            gamma = M_PI;
+        }
+
+        return ArmAngles(gamma * 1800 / M_PI,
+                         beta * 1800 / M_PI,
+                         alph * 1800 / M_PI,
+                         900,900);
+    }
+    else
+    {
+        return ArmAngles();
+    }
+}
