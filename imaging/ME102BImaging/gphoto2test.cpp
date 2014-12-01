@@ -91,7 +91,7 @@ int main()
 //    cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH); // width of viewport of camera
 //    cvSetCaptureProperty(camera2, CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT); // height of ...
 
-    VideoCapture camera(1);
+    VideoCapture camera(0);
     camera.set(CV_CAP_PROP_EXPOSURE, -6);
     VideoCapture camera2(2);
     camera2.set(CV_CAP_PROP_EXPOSURE, -5);
