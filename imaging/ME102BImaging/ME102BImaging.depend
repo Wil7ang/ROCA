@@ -1,0 +1,74 @@
+# depslib dependency file v1.0
+1412827600 source:/home/wil7ang/Development/ME102BImaging/main.cpp
+	<iostream>
+	<fstream>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<time.h>
+	<dirent.h>
+	<sstream>
+	<dirent.h>
+	<sys/types.h>
+	<sys/stat.h>
+
+1416967275 source:/home/wil7ang/Development/ME102BImaging/gphoto2test.cpp
+	<gphoto2/gphoto2.h>
+	<gphoto2/gphoto2-camera.h>
+	<stdio.h>
+	<stdlib.h>
+	<cstdlib>
+	<unistd.h>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<vector>
+	<time.h>
+	<cmath>
+
+1416976813 source:/home/wil7ang/ROCA/imaging/ME102BImaging/gphoto2test.cpp
+	<stdio.h>
+	<stdlib.h>
+	<cstdlib>
+	<unistd.h>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<vector>
+	<time.h>
+	<cmath>
+	"realWorld.h"
+	<unistd.h>
+
+1416973924 /home/wil7ang/ROCA/imaging/ME102BImaging/realWorld.h
+	<string>
+
+1417316284 source:/home/wil7ang/Development/ROCA/imaging/ME102BImaging/gphoto2test.cpp
+	<stdio.h>
+	<stdlib.h>
+	<cstdlib>
+	<unistd.h>
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	<vector>
+	<time.h>
+	<cmath>
+	"realWorld.h"
+	"prediction.h"
+	<unistd.h>
+
+1416977157 /home/wil7ang/Development/ROCA/imaging/ME102BImaging/realWorld.h
+	<string>
+
+1417061758 source:/home/wil7ang/Development/ROCA/imaging/ME102BImaging/main.cpp
+	<SerialStream.h>
+	<stdio.h>
+	<unistd.h>
+	<iostream>
+	"prediction.h"
+	"forwardKinematics.h"
+
+1417305548 /home/wil7ang/Development/ROCA/imaging/ME102BImaging/prediction.h
+	<cmath>
+	<complex>
+
+1417062979 /home/wil7ang/Development/ROCA/imaging/ME102BImaging/forwardKinematics.h
+	<stdlib.h>
+

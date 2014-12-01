@@ -1,0 +1,3 @@
+import csv
+cr = csv.reader(open("11.24CalibrationData.csv","rb"))
+
