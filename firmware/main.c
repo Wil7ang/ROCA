@@ -61,7 +61,7 @@
 #define UINT16T_MAX 65536.0f
 
 #define SHOULDER_ENDPOINT_F 962L
-#define SHOULDER_ENDPOINT_B 30L
+#define SHOULDER_ENDPOINT_B 27L
 
 //UART defines
 #define FOSC 16000000// Clock Speed
@@ -203,7 +203,7 @@ motorParameters UpdateControls(int baseAngle, int currentShoulderAngle, int shou
     duties.shoulderDuty += SHOULDER_I * shoulderIntegral;
 
     duties.shoulderDuty += SHOULDER_D * shoulderDerivative;
-    printf("%i %i\r\n", duties.shoulderDuty, duties.shoulderDuty + 16 * shoulderIntegral);
+    // printf("%i %i\r\n", duties.shoulderDuty, duties.shoulderDuty + 16 * shoulderIntegral);
 
     return duties;
 }
@@ -261,10 +261,9 @@ int main()
 
     hardStop();
 
-
+    unsigned char received[3] = {0,0,0};
     for(;;)
     {
-        unsigned char received[3];
         if(usart_kbhit())
         {
             if(stringPosition < 3)
@@ -273,6 +272,8 @@ int main()
                 stringPosition++;
             }
         }
+
+        // printf("%x %x %x\n",received[0], received[1], received[2]);
 
 
         int ang = GetShoulderEncoderPosition();
@@ -365,13 +366,16 @@ int main()
                     setServoPosition(currentServoPositionA, argument);
                 default: break;
             }
+            received[0] = 0;
+            received[1] = 0;
+            received[2] = 0;
         }
 
         //shoulderSetAngle = MIN(MAX(shoulderSetAngle, -102), 1902);
         //forearmSetAngle = MIN(MAX(forearmSetAngle, -400), 2200);
 
         //printf("%i %i %i\n", forearmCurrentAngle, forearmSetAngle, motorState.forearmDuty);
-        //printf("%i %i %i %i\r\n", ang, shoulderCurrentAngle, 2004 - (shoulderSetAngle + 102) - 102, motorState.shoulderDuty);
+        // printf("%i %i %i %i\r\n", ang, shoulderCurrentAngle, 2004 - (shoulderSetAngle + 102) - 102, motorState.shoulderDuty);
         //printf("Ang: %i\r\n", ang);
         // for(j = 0; j < 10; j++)
         // {
