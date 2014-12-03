@@ -1,6 +1,6 @@
 #include <cmath>
 #include <complex>
-
+#include <vector>
 using namespace std;
 
 #define FOREARM_LENGTH 0.290
@@ -217,4 +217,45 @@ ArmAngles GetArmAngles(Point3DD position)
     {
         return ArmAngles();
     }
+}
+
+vector<complex<double> > IntersectParabolaAndCircle(double A, double B, double C, double offsetX, double offsetY, double radius)
+{
+    double a = pow(A,2);
+    double b = 2*A*B;
+    double c = (2*A*C - 2*A*offsetY + pow(B,2) + 1);
+    double d = (2*B*C - 2*B*offsetY - 2*offsetX);
+    double e = (pow(C,2) - 2*C*offsetY + pow(offsetX,2) + pow(offsetY,2) - pow(radius,2));
+    //printf("%f %f %f %f %f\n",a,b,c,d,e);
+    return QuarticSolver(a,b,c,d,e);
+}
+
+float determinant3x3(float a, float b, float c,
+                     float d, float e, float f,
+                     float g, float h, float i)
+{
+    return a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g;
+}
+
+void GetParabola(double &A, double &B, double &C, vector<pair<int,int> > pointStorage)
+{
+    float detA = determinant3x3(pointStorage[0].second, pointStorage[0].first, 1,
+                                pointStorage[3].second, pointStorage[3].first, 1,
+                                pointStorage[6].second, pointStorage[6].first, 1);
+    
+    float detB = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].second, 1,
+                                pow((float)pointStorage[3].first,2), pointStorage[3].second, 1,
+                                pow((float)pointStorage[6].first,2), pointStorage[6].second, 1);
+    
+    float detC = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, pointStorage[0].second,
+                                pow((float)pointStorage[3].first,2), pointStorage[3].first, pointStorage[3].second,
+                                pow((float)pointStorage[6].first,2), pointStorage[6].first, pointStorage[6].second);
+    
+    float detD = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, 1,
+                                pow((float)pointStorage[3].first,2), pointStorage[3].first, 1,
+                                pow((float)pointStorage[6].first,2), pointStorage[6].first, 1);
+    
+    A = detA/detD;
+    B = detB/detD;
+    C = detC/detD;
 }
