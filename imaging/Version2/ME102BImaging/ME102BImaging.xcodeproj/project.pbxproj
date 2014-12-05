@@ -23,10 +23,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AE16DD221A3105C500EA1FA8 /* ComputeLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ComputeLine.h; sourceTree = "<group>"; };
+		AE16DD231A3105C500EA1FA8 /* LeastSquare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeastSquare.h; sourceTree = "<group>"; };
+		AE16DD241A3105C500EA1FA8 /* LineLineIntersect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LineLineIntersect.h; sourceTree = "<group>"; };
+		AE16DD251A3105C500EA1FA8 /* ParaLineIntersect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ParaLineIntersect.h; sourceTree = "<group>"; };
+		AE16DD261A3105C600EA1FA8 /* Prediction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prediction.h; sourceTree = "<group>"; };
+		AE16DD271A3105C600EA1FA8 /* realWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = realWorld.h; sourceTree = "<group>"; };
 		AE6E3D2F1A2CF166007EE894 /* ME102BImaging */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ME102BImaging; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE6E3D321A2CF166007EE894 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		AE6E3D391A2CF21B007EE894 /* realWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = realWorld.h; path = ../../ROCA/imaging/ME102BImaging/realWorld.h; sourceTree = "<group>"; };
-		AE6E3D3A1A2CF22B007EE894 /* prediction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = prediction.h; path = ../../ROCA/imaging/ME102BImaging/prediction.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,8 +63,12 @@
 		AE6E3D311A2CF166007EE894 /* ME102BImaging */ = {
 			isa = PBXGroup;
 			children = (
-				AE6E3D3A1A2CF22B007EE894 /* prediction.h */,
-				AE6E3D391A2CF21B007EE894 /* realWorld.h */,
+				AE16DD221A3105C500EA1FA8 /* ComputeLine.h */,
+				AE16DD231A3105C500EA1FA8 /* LeastSquare.h */,
+				AE16DD241A3105C500EA1FA8 /* LineLineIntersect.h */,
+				AE16DD251A3105C500EA1FA8 /* ParaLineIntersect.h */,
+				AE16DD261A3105C600EA1FA8 /* Prediction.h */,
+				AE16DD271A3105C600EA1FA8 /* realWorld.h */,
 				AE6E3D321A2CF166007EE894 /* main.cpp */,
 			);
 			path = ME102BImaging;
@@ -206,16 +214,24 @@
 		AE6E3D371A2CF166007EE894 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/opt/local/include,
+					/usr/local/include,
 				);
-				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/local/lib,
+					/usr/local/lib,
+				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-lopencv_core",
 					"-lopencv_highgui",
 					"-lopencv_imgproc",
+					"-lserialport",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -224,16 +240,24 @@
 		AE6E3D381A2CF166007EE894 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					/opt/local/include,
+					/usr/local/include,
 				);
-				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/local/lib,
+					/usr/local/lib,
+				);
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = (
 					"-lopencv_core",
 					"-lopencv_highgui",
 					"-lopencv_imgproc",
+					"-lserialport",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -258,6 +282,7 @@
 				AE6E3D381A2CF166007EE894 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
