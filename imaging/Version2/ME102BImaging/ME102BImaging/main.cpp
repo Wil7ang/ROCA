@@ -18,6 +18,8 @@
 #include "LeastSquare.h"
 #include "realWorld.h"
 
+#include "IKTable.h"
+
 #define CAMERAWIDTH 640
 #define CAMERAHEIGHT 480
 #define MAXMOTION 100
@@ -84,18 +86,18 @@ void moveROCA(sp_port *connection, int16_t base, int16_t shoulder, int16_t elbow
         0x84, static_cast<unsigned char>((wristA>>8) & 0xFF), static_cast<unsigned char>(wristA & 0xFF),
         0x85, static_cast<unsigned char>((wristB>>8) & 0xFF), static_cast<unsigned char>(wristB & 0xFF)};
     
-    for(i = 0;i<16;i+=3)
+    for(i = 0;i<13;i+=3)
     {
         unsigned char buff[2] = {command[i],0};
         unsigned char buff2[2] = {command[i+1],0};
         unsigned char buff3[2] = {command[i+2],0};
         
         sp_blocking_write(connection, buff, 1, 100);
-        usleep(10000);
+        usleep(20000);
         sp_blocking_write(connection, buff2, 1, 100);
-        usleep(10000);
+        usleep(20000);
         sp_blocking_write(connection, buff3, 1, 100);
-        usleep(10000);
+        usleep(20000);
     }
 }
 
@@ -103,6 +105,8 @@ void moveROCA(sp_port *connection, int16_t base, int16_t shoulder, int16_t elbow
 int X1,Y1,X2,Y2;
 bool camera1Set = false;
 bool camera2Set = false;
+
+vector<int*> test;
 
 void MouseCallBack(int event, int x, int y, int flags, void* userdata)
 {
@@ -124,24 +128,6 @@ void MouseCallBack(int event, int x, int y, int flags, void* userdata)
 
 int main()
 {
-    sp_port *thePort;
-    sp_get_port_by_name("/dev/tty.usbserial-DA005RR2", &thePort);
-    int ret = sp_open(thePort, SP_MODE_WRITE);
-    if(ret == SP_OK)
-    {
-        printf("Serial port opened!\n");
-        sp_set_baudrate(thePort, 19200);
-        sp_set_bits(thePort, 8);
-        sp_set_parity(thePort, SP_PARITY_NONE);
-        sp_set_stopbits(thePort, 1);
-        sp_set_flowcontrol(thePort, SP_FLOWCONTROL_NONE);
-    }
-    else
-    {
-        printf("Cannot open serial port!\n");
-//        return 0;
-    }
-    
     VideoCapture camera(2);
     camera.set(CV_CAP_PROP_FRAME_WIDTH, CAMERAWIDTH);
     camera.set(CV_CAP_PROP_FRAME_HEIGHT, CAMERAHEIGHT);
@@ -197,6 +183,28 @@ int main()
     
     bool gotThreePoints = false;
     bool gotTwoPoints = false;
+    bool STOP = false;
+    
+    int updatedPoint = 7;
+    
+    
+    sp_port *thePort;
+    sp_get_port_by_name("/dev/tty.usbserial-DA005RR2", &thePort);
+    int ret = sp_open(thePort, SP_MODE_WRITE);
+    if(ret == SP_OK)
+    {
+        printf("Serial port opened!\n");
+        sp_set_baudrate(thePort, 19200);
+        sp_set_bits(thePort, 8);
+        sp_set_parity(thePort, SP_PARITY_NONE);
+        sp_set_stopbits(thePort, 1);
+        sp_set_flowcontrol(thePort, SP_FLOWCONTROL_NONE);
+    }
+    else
+    {
+        printf("Cannot open serial port!\n");
+        //        return 0;
+    }
 
     while(true)
     {
@@ -254,7 +262,7 @@ int main()
             }
             circle(result2, Point(pointStorage2[i].first,pointStorage2[i].second), 3, Scalar(255,0,0,1), 2);
         }
-        if(pointStorage2.size() == 7)
+        if(pointStorage2.size() == 3)
         {
             gotTwoPoints = true;
         }
@@ -272,15 +280,22 @@ int main()
                 dx = 20.0f;
                 //A = -A;
             }
-            double pointStorage2ComponentX[6]={static_cast<double>(pointStorage2[1].first),static_cast<double>(pointStorage2[2].first),static_cast<double>(pointStorage2[3].first),static_cast<double>(pointStorage2[4].first),static_cast<double>(pointStorage2[5].first),static_cast<double>(pointStorage2[6].first)};
-            double pointStorage2ComponentY[6]={static_cast<double>(pointStorage2[1].second),static_cast<double>(pointStorage2[2].second),static_cast<double>(pointStorage2[3].second),static_cast<double>(pointStorage2[4].second),static_cast<double>(pointStorage2[5].second),static_cast<double>(pointStorage2[6].second)};
+            double pointStorage2ComponentX[4]={static_cast<double>(pointStorage2[0].first),
+                                               static_cast<double>(pointStorage2[1].first),
+                                               static_cast<double>(pointStorage2[2].first),
+                                               static_cast<double>(pointStorage2[3].first),
+                                               };
+            double pointStorage2ComponentY[4]={static_cast<double>(pointStorage2[0].second),
+                                               static_cast<double>(pointStorage2[1].second),
+                                               static_cast<double>(pointStorage2[2].second),
+                                               static_cast<double>(pointStorage2[3].second)};
             double D=0, E=0;
 
-            llsq(6, pointStorage2ComponentX, pointStorage2ComponentY,D,E);
+            llsq(3, pointStorage2ComponentX, pointStorage2ComponentY,D,E);
 
             //Principle line in second camera
             double D1=0,E1=0;
-            ComputeLine(242,364,239,150,D1,E1);
+            ComputeLine(176,338,173,110,D1,E1);
             LineLine(D,E,D1,E1,camx2,camy2);
 
             for(int j = 0; j < 40; j++)
@@ -293,17 +308,17 @@ int main()
                 y1 = y2;
             }
         }
-        if(pointStorage.size() == 7)
+        if(pointStorage.size() == 8)
         {
             gotThreePoints = true;
         }
         if(gotThreePoints)
         {
             double A=0.0,B = 0.0,C = 0.0;
-            GetParabola(A, B, C, pointStorage);
+            GetParabola(A, B, C, pointStorage, updatedPoint);
             
-            float x0 = pointStorage[0].first;
-            float y0 = pointStorage[0].second;
+            float x0 = pointStorage[2].first;
+            float y0 = pointStorage[2].second;
             float x1 = x0;
             float y1 = y0;
             float dx = 0.0f;
@@ -314,10 +329,10 @@ int main()
                 dx = 20.0f;
             }
             
-            if(camy2<365&&camy2>=311){camx1=(530-511)*(camy2-365)/(311-365)+511;}
-            else if(camy2<311&&camy2>=255){camx1=(552-530)*(camy2-311)/(255-311)+530;}
-            else if(camy2<255&&camy2>=203){camx1=(581-552)*(camy2-255)/(203-255)+552;}
-            else if(camy2<203&&camy2>=150){camx1=(615-581)*(camy2-203)/(150-203)+581;}
+            if(camy2<338&&camy2>=284){camx1=(525-508)*(camy2-338)/(284-338)+508;}
+            else if(camy2<284&&camy2>=226){camx1=(547-525)*(camy2-284)/(226-284)+525;}
+            else if(camy2<226&&camy2>=170){camx1=(574-547)*(camy2-226)/(170-226)+547;}
+            else if(camy2<170&&camy2>=208){camx1=(608-574)*(camy2-170)/(108-170)+574;}
             else camx1=0;
             
             
@@ -343,22 +358,27 @@ int main()
         //Point3DD realWorldResult = GetRealWorldCoordinates(X1, Y1, X2, Y2);
         if(realWorldResult.x!=0  && realWorldResult.z!=0)
         {
+            STOP = true;
             if(!detect)
             {
-                //printf("%i,%i | %i,%i\n", X1,Y1,X2,Y2);
+                detect = true;
 
             	printf("Found real world coordinate: %f %f %f\n", realWorldResult.x, realWorldResult.y, realWorldResult.z);
                 ArmAngles res = GetArmAngles(Point3DD(realWorldResult.y/100.0, realWorldResult.x/100.0, realWorldResult.z/100.0));
                 if(res.valid)
                 {
                     printf("Found arm angles: %i %i %i %i %i\n", res.base - 900, res.shoulder, res.elbow, res.wristA, res.wristB);
-                    moveROCA(thePort, res.base-900, res.shoulder, res.elbow, res.wristA, res.wristB);
+                    moveROCA(thePort, res.base-900, res.shoulder, res.elbow+200, res.wristA, res.wristB);
                 }
                 else
                     printf("Angles invalid!\n");
-                detect = true;
             }
         }
+        else if(!STOP)
+        {
+            updatedPoint = pointStorage.size()-1;
+        }
+        
         Mat merged_frame = Mat(Size(1280, 480), CV_8UC3);
         Mat roi = Mat(merged_frame, Rect(0, 0, 640, 480));
         result.copyTo(roi);
@@ -374,14 +394,17 @@ int main()
         }
         else if(key == 97)
         {
+            STOP = false;
             detect = false;
             pointStorage.clear();
             pointStorage2.clear();
             gotTwoPoints = false;
             gotThreePoints = false;
+            camx1=camx2=camy1=camy2=0;
         }
     }
-
+    
     sp_close(thePort);
+
     return 0;
 }

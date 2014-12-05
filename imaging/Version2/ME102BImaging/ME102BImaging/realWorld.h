@@ -10,81 +10,81 @@ Point3DD GetRealWorldCoordinates(int X1, int Y1, int X2, int Y2)
     double realY = 20.0;
     double realZ = 0.0;
     // 0, 0 to 1, 1
-    if(X1 > 511 && X1 <= 530 && Y1 > 269 && Y1 <= 299 && Y2 <= 361 && Y2 > 306)
+    if(X1 > 509 && X1 <= 528 && Y1 > 285 && Y1 <= 314 && Y2 <= 342 && Y2 > 285)
     {
-        realX = ((361.0 - (double)Y2)/55.0 * 35.0 + 0.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (361.0 - (double)Y2)/(217.0) * 14.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((342.0 - (double)Y2)/57.0 * 35.0 + 0.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (342.0 - (double)Y2)/(234.0) * 11.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 1, 0 to 2, 1
-    if(X1 > 530 && X1 <= 552 && Y1 > 269 && Y1 <= 301 && Y2 <= 306 && Y2 > 251)
+    if(X1 > 528 && X1 <= 548 && Y1 > 285 && Y1 <= 315 && Y2 <= 285 && Y2 > 224)
     {
-        realX = ((306.0 - (double)Y2)/55.0 * 35.0 + 35.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (361.0 - (double)Y2)/(217.0) * 14.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((285.0 - (double)Y2)/61.0 * 35.0 + 35.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (342.0 - (double)Y2)/(234.0) * 11.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 2, 0 to 3, 1
-    if(X1 > 552 && X1 <= 582 && Y1 > 270 && Y1 <= 307 && Y2 <= 251 && Y2 > 200)
+    if(X1 > 548 && X1 <= 580 && Y1 > 286 && Y1 <= 318 && Y2 <= 224 && Y2 > 168)
     {
-        realX = ((251.0 - (double)Y2)/51.0 * 35.0 + 70.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (361.0 - (double)Y2)/(217.0) * 14.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((224.0 - (double)Y2)/56.0 * 35.0 + 70.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (342.0 - (double)Y2)/(234.0) * 11.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 3, 0 to 4, 1
-    if(X1 > 582 && X1 <= 616 && Y1 > 270 && Y1 <= 311 && Y2 <= 200 && Y2 > 144)
+    if(X1 > 580 && X1 <= 613 && Y1 > 285 && Y1 <= 324 && Y2 <= 168 && Y2 > 108)
     {
-        realX = ((200.0 - (double)Y2)/56.0 * 35.0 + 105.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (361.0 - (double)Y2)/(217.0) * 14.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((168.0 - (double)Y2)/60.0 * 35.0 + 105.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (342.0 - (double)Y2)/(234.0) * 11.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 0, 1 to 1, 2
-    if(X1 > 512 && X1 <= 530 && Y1 > 241 && Y1 <= 269 && Y2 <= 363 && Y2 > 307)
+    if(X1 > 509 && X1 <= 528 && Y1 > 258 && Y1 <= 285 && Y2 <= 341 && Y2 > 284)
     {
-        realX = ((363.0 - (double)Y2)/56.0 * 35.0 + 0.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (363.0 - (double)Y2)/(217.0) * 1.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((341.0 - (double)Y2)/57.0 * 35.0 + 0.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (341.0 - (double)Y2)/(237.0) * -1.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 1, 1 to 2, 2
-    if(X1 > 530 && X1 <= 553 && Y1 > 238 && Y1 <= 270 && Y2 <= 307 && Y2 > 252)
+    if(X1 > 528 && X1 <= 549 && Y1 > 253 && Y1 <= 286 && Y2 <= 284 && Y2 > 225)
     {
-        realX = ((307.0 - (double)Y2)/55.0 * 35.0 + 35.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (363.0 - (double)Y2)/(217.0) * 1.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((284.0 - (double)Y2)/59.0 * 35.0 + 35.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (341.0 - (double)Y2)/(237.0) * -1.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 2, 1 to 3, 2
-    if(X1 > 553 && X1 <= 581 && Y1 > 235 && Y1 <= 270 && Y2 <= 252 && Y2 > 197)
+    if(X1 > 549 && X1 <= 578 && Y1 > 250 && Y1 <= 285 && Y2 <= 225 && Y2 > 164)
     {
-        realX = ((252.0 - (double)Y2)/55.0 * 35.0 + 70.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (363.0 - (double)Y2)/(217.0) * 1.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((225.0 - (double)Y2)/61.0 * 35.0 + 70.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (341.0 - (double)Y2)/(237.0) * -1.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     
     
     // 3, 1 to 4, 2
-    if(X1 > 581 && X1 <= 615 && Y1 > 231 && Y1 <= 270 && Y2 <= 197 && Y2 > 146)
+    if(X1 > 578 && X1 <= 610 && Y1 > 246 && Y1 <= 284 && Y2 <= 164 && Y2 > 104)
     {
-        realX = ((197.0 - (double)Y2)/51.0 * 35.0 + 105.0) - 70.0;
-        double adjustedY1 = (double)Y1 - (363.0 - (double)Y2)/(217.0) * 1.0;
-        realZ = (((297 - adjustedY1)/28) * 35.0);
+        realX = ((164.0 - (double)Y2)/60.0 * 35.0 + 105.0) - 70.0;
+        double adjustedY1 = (double)Y1 - (341.0 - (double)Y2)/(237.0) * -1.0;
+        realZ = (((313 - adjustedY1)/28) * 35.0);
         return Point3DD(realX,realY,realZ);
     }
     

@@ -31,6 +31,7 @@
 		AE16DD271A3105C600EA1FA8 /* realWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = realWorld.h; sourceTree = "<group>"; };
 		AE6E3D2F1A2CF166007EE894 /* ME102BImaging */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ME102BImaging; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE6E3D321A2CF166007EE894 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		AEBC53B51A31DC7B00286F3C /* IKTable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IKTable.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -70,6 +71,7 @@
 				AE16DD261A3105C600EA1FA8 /* Prediction.h */,
 				AE16DD271A3105C600EA1FA8 /* realWorld.h */,
 				AE6E3D321A2CF166007EE894 /* main.cpp */,
+				AEBC53B51A31DC7B00286F3C /* IKTable.h */,
 			);
 			path = ME102BImaging;
 			sourceTree = "<group>";

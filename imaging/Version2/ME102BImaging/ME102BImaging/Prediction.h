@@ -93,23 +93,23 @@ float determinant3x3(float a, float b, float c,
     return a*e*i + b*f*g + c*d*h - a*f*h - b*d*i - c*e*g;
 }
 
-void GetParabola(double &A, double &B, double &C, vector<pair<int,int> > pointStorage)
+void GetParabola(double &A, double &B, double &C, vector<pair<int,int> > pointStorage, int currentPointSize)
 {
-    float detA = determinant3x3(pointStorage[0].second, pointStorage[0].first, 1,
-                                pointStorage[3].second, pointStorage[3].first, 1,
-                                pointStorage[6].second, pointStorage[6].first, 1);
+    float detA = determinant3x3(pointStorage[2].second, pointStorage[2].first, 1,
+                                pointStorage[5].second, pointStorage[5].first, 1,
+                                pointStorage[currentPointSize].second, pointStorage[currentPointSize].first, 1);
     
-    float detB = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].second, 1,
-                                pow((float)pointStorage[3].first,2), pointStorage[3].second, 1,
-                                pow((float)pointStorage[6].first,2), pointStorage[6].second, 1);
+    float detB = determinant3x3(pow((float)pointStorage[2].first,2), pointStorage[2].second, 1,
+                                pow((float)pointStorage[5].first,2), pointStorage[5].second, 1,
+                                pow((float)pointStorage[currentPointSize].first,2), pointStorage[currentPointSize].second, 1);
     
-    float detC = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, pointStorage[0].second,
-                                pow((float)pointStorage[3].first,2), pointStorage[3].first, pointStorage[3].second,
-                                pow((float)pointStorage[6].first,2), pointStorage[6].first, pointStorage[6].second);
+    float detC = determinant3x3(pow((float)pointStorage[2].first,2), pointStorage[2].first, pointStorage[2].second,
+                                pow((float)pointStorage[5].first,2), pointStorage[5].first, pointStorage[5].second,
+                                pow((float)pointStorage[currentPointSize].first,2), pointStorage[currentPointSize].first, pointStorage[currentPointSize].second);
     
-    float detD = determinant3x3(pow((float)pointStorage[0].first,2), pointStorage[0].first, 1,
-                                pow((float)pointStorage[3].first,2), pointStorage[3].first, 1,
-                                pow((float)pointStorage[6].first,2), pointStorage[6].first, 1);
+    float detD = determinant3x3(pow((float)pointStorage[2].first,2), pointStorage[2].first, 1,
+                                pow((float)pointStorage[5].first,2), pointStorage[5].first, 1,
+                                pow((float)pointStorage[currentPointSize].first,2), pointStorage[currentPointSize].first, 1);
     
     A = detA/detD;
     B = detB/detD;
