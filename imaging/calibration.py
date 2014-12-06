@@ -9,8 +9,8 @@ import cv2
 
 
 calibrationResolution = 30 #Calibration resolution in centimeters
-calibrationMinimum = -60
-calibrationMaximum = 60
+calibrationMinimum = -30
+calibrationMaximum = 30
 
 currentRealX = calibrationMinimum #Real X in centimeters
 currentRealY = 0 #Real Y in centimeters
@@ -51,8 +51,8 @@ def onMouse(event, x, y, flags, param):
 CAMERAWIDTH = 640
 CAMERAHEIGHT = 480
 
-camera1 = cv2.VideoCapture(2)
-camera2 = cv2.VideoCapture(1)
+camera1 = cv2.VideoCapture(1)
+camera2 = cv2.VideoCapture(2)
 camera1.set(3,CAMERAWIDTH)
 camera1.set(4,CAMERAHEIGHT)
 camera2.set(3,CAMERAWIDTH)
@@ -119,13 +119,7 @@ for z in range(0,len(calibrationArray)-1):
     for y in range(0,len(calibrationArray[z])-1):
         for x in range(0,len(calibrationArray[z][y])-1):
             print " // " + str(x) + ", " + str(y) + ", " + str(z) + " to " + str(x+1) + ", " + str(y+1) + ", " + str(z+1)
-            print " if(X1 > " + str(calibrationArray[z][y][x][0]) + " && X1 <= " + str(calibrationArray[z][y+1][x][0]) + " && Y1 < " + str(calibrationArray[z][y][x][1]) + " && Y1 >= " + str(calibrationArray[z+1][y][x][1]) + \
-                " && X2 > " + str(calibrationArray[z][y][x][2]) + " && X2 <= " + str(calibrationArray[z][y+1][x][2]) + " && Y2 > " + str(calibrationArray[z][y][x][3]) + " && Y2 <= " + str(calibrationArray[z][y][x+1][3]) + " )"
-            print " {"
-            print "     realX = (Y2 - " + str(calibrationArray[z][y][x][3]) + ")/" + str(calibrationArray[z][y][x+1][3] - calibrationArray[z][y][x][3]) + " * " + str(calibrationResolution) + " + " + str(x*calibrationResolution) + ";"
-            print "     realY = (X1 - " + str(calibrationArray[z][y][x][0]) + ")/" + str(calibrationArray[z][y+1][x][0] - calibrationArray[z][y][x][0]) + " * " + str(calibrationResolution) + " + " + str(y*calibrationResolution) + ";"
-            print "     realZ = ( " + str(calibrationArray[z][y][x][1] - calibrationArray[z+1][y][x][1]) + " - (Y1 - " + str(calibrationArray[z+1][y][x][1]) + "))/" + str(calibrationArray[z][y][x][1] - calibrationArray[z+1][y][x][1]) + " * " + str(calibrationResolution) + " + " + str(z*calibrationResolution) + ";"
-            print " }"
+            # print " if(X1 > 
         print '\n'
     print '\n\n'
 

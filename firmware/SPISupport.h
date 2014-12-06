@@ -22,7 +22,7 @@ void initializeSPI()
 
     //Setup SPI
     DDRB |= MOSI | SCK | SS;
-    SPCR |= _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(SPR1) | _BV(CPOL) | _BV(CPHA);
+    SPCR |= _BV(SPE) | _BV(MSTR) | _BV(SPR0) | _BV(SPR1) | _BV(CPHA);
 
     PORTB |= SS;
     PORTD |= SHOULDER_ENCODER_CS | MOTOR_DRIVER_CS;

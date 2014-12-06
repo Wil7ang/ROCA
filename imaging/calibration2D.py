@@ -8,9 +8,9 @@ import cv2
 
 
 
-calibrationResolution = 30 #Calibration resolution in centimeters
-calibrationMinimum = -30
-calibrationMaximum = 30
+calibrationResolution = 35 #Calibration resolution in centimeters
+calibrationMinimum = -70
+calibrationMaximum = 70
 
 currentRealX = calibrationMinimum #Real X in centimeters
 currentRealZ = 0 #Real Z in centimeters
@@ -50,7 +50,7 @@ CAMERAWIDTH = 640
 CAMERAHEIGHT = 480
 
 camera1 = cv2.VideoCapture(2)
-camera2 = cv2.VideoCapture(1)
+camera2 = cv2.VideoCapture(0)
 camera1.set(3,CAMERAWIDTH)
 camera1.set(4,CAMERAHEIGHT)
 camera2.set(3,CAMERAWIDTH)
@@ -102,8 +102,11 @@ for z in calibrationArray:
         print x,
     print '\n'
 
-print "void GetRealWorldCoordinates(double &realX, double &realY, double &realZ, int X1, int Y1, int X2, int Y2)"
+print "Point3DD GetRealWorldCoordinates(int X1, int Y1, int X2, int Y2)"
 print "{"
+print " double realX = 0.0;"
+print " double realY = 35.0;"
+print " double realZ = 0.0;"
 
 for z in range(0,len(calibrationArray)-1):
     for x in range(0,len(calibrationArray[z])-1):
@@ -111,9 +114,10 @@ for z in range(0,len(calibrationArray)-1):
         print " if(X1 > " + str(calibrationArray[z][x][0]) + " && X1 <= " + str(calibrationArray[z][x+1][0]) + " && Y1 > " + str(calibrationArray[z+1][x][1]) + " && Y1 <= " + str(calibrationArray[z][x+1][1]) \
             + " && Y2 <= " + str(calibrationArray[z][x][3]) + " && Y2 > " + str(calibrationArray[z][x+1][3]) + ")"
         print " {"
-        print "     realX = ((" + str(calibrationArray[z][x][3]) + ".0 - (double)Y2)/" + str(calibrationArray[z][x][3] - calibrationArray[z][x+1][3]) + ".0 * " + str(calibrationResolution) + ".0 + " + str(x * calibrationResolution) + ".0) - 30.0;"
+        print "     realX = ((" + str(calibrationArray[z][x][3]) + ".0 - (double)Y2)/" + str(calibrationArray[z][x][3] - calibrationArray[z][x+1][3]) + ".0 * " + str(calibrationResolution) + ".0 + " + str(x * calibrationResolution) + ".0) - 70.0;"
         print "     double adjustedY1 = (double)Y1 - (" + str(calibrationArray[z][0][3]) + ".0 - (double)Y2)/(" + str(calibrationArray[z][0][3] - calibrationArray[z][len(calibrationArray[z])-1][3]) + ".0) * " + str(calibrationArray[z][len(calibrationArray[z])-1][1] - calibrationArray[z][0][1]) + ".0;"
-        print "     realZ = 30.0 - ((adjustedY1 - " + str(calibrationArray[z+1][0][1]) + ".0)/(" + str(calibrationArray[0][0][1] - calibrationArray[z+1][0][1]) + ".0) * " + str(calibrationMaximum) + ".0);"
+        print "     realZ = (((" + str(calibrationArray[0][0][1]) +  " - adjustedY1)/" + str(calibrationArray[0][0][1] - calibrationArray[1][0][1]) + ") * " + str(calibrationMaximum/2) + ".0);"
+        print "     return Point3DD(realX,realY,realZ);"
         print " }"
         print '\n'
 print "}"

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+python ./controller.py /dev/tty.usbserial-DA005RR2 -850 400 1100 900 450
+sleep 2.0
+python ./controller.py /dev/tty.usbserial-DA005RR2 +850 400 700 900 1600
+
+
+python ./controller.py /dev/tty.usbserial-DA005RR2 0 900 900 900 900
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 -850 900 900 900 900
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 -850 400 900 900 900
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 -850 400 1500 900 900
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 -800 400 1500 900 450
+
+
+python ./controller.py /dev/tty.usbserial-DA005RR2 0 900 900 900 900  
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 850 900 900 900 900
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 850 1200 900 900 900   
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 850 1200 900 100 900 
+sleep 0.25
+python ./controller.py /dev/tty.usbserial-DA005RR2 850 1200 900 100 1600  
+

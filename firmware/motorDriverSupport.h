@@ -20,7 +20,7 @@ void setupMotorDriver()
     _delay_ms(250);
 
 
-    unsigned char sendData[4] = {0x30,0x00, 0x00, 0x00};
+    unsigned char sendData[4] = {0x30, 0x00, 0x20, 0x00};
     SPITransmitMultiple(MOTOR_DRIVER, sendData, 4);
     _delay_ms(500);
 
@@ -38,12 +38,11 @@ void setupMotorDriver()
 
 void zeroForearm()
 {
-    setMotorVelocity(-16000, 0);
+    setMotorVelocity(16000, 0);
     _delay_ms(800);
-    enc_count = 0;
-    _delay_ms(500);
-
     setMotorVelocity(0,0);
+    _delay_ms(500);
+    enc_count = 4627;    
 }
 
 //Duty cycle of the motor from 0.0 to 1.0

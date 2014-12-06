@@ -60,8 +60,8 @@
 
 #define UINT16T_MAX 65536.0f
 
-#define SHOULDER_ENDPOINT_F 962L
-#define SHOULDER_ENDPOINT_B 27L
+#define SHOULDER_ENDPOINT_F 920L
+#define SHOULDER_ENDPOINT_B 15L
 
 //UART defines
 #define FOSC 16000000// Clock Speed
@@ -170,10 +170,10 @@ void setServoPosition(uint16_t servoA, uint16_t servoB)
     currentServoPositionA = servoA;
     currentServoPositionB = servoB;
 
-    uint16_t pos = 1200U + (servoA * 18)/9;
+    uint16_t pos = 1000U + (servoA * 15)/7;
     OCR1A = pos;
 
-    pos = 1800U + (servoB * 4)/3;
+    pos = 1000U + (servoB * 15)/7;
     OCR1B = pos;
 }
 
@@ -218,7 +218,7 @@ long int convertShoulderPositionToAngle(long int position)
 //Forearm goes from -40 to 220
 long int convertForearmPositionToAngle(long int position)
 {
-    return ((2200L - (-400L)) * (position - 0L) / (4491L)) + (-400L);
+    return ((2200L - (-400L)) * (position - 0L) / (4627L)) + (-400L);
 }
 
 void printByte(char byte)
@@ -235,10 +235,9 @@ int main()
     initPins();
     setupMotorDriver();
     
-
     usart_init ( UARTCLOCK );
 
-    int shoulderSetAngle = 1350;
+    int shoulderSetAngle = 900;
     int forearmSetAngle = -400;
 
     int errorHistoryShoulder[10] = {0,0,0,0,0,0,0,0,0,0};
@@ -256,16 +255,19 @@ int main()
 
     _delay_ms(500);
 
-    setServoPosition(900, 1800);
+    setServoPosition(900, 900);
     _delay_ms(100);
 
     hardStop();
 
     unsigned char received[3] = {0,0,0};
+
+    uint32_t counter = 0;
     for(;;)
     {
         if(usart_kbhit())
         {
+            counter = 0;
             if(stringPosition < 3)
             {
                 received[stringPosition] = usart_getchar();
@@ -281,11 +283,11 @@ int main()
 
         int forearmCurrentAngle = convertForearmPositionToAngle(enc_count);
 
-        errorHistoryShoulder[errorHistoryShoulderIndex] = (2004 - (shoulderSetAngle + 102) - 102) - shoulderCurrentAngle;
+        errorHistoryShoulder[errorHistoryShoulderIndex] = (shoulderSetAngle) - shoulderCurrentAngle;
         int errorChange = errorHistoryShoulder[errorHistoryShoulderIndex] - errorHistoryShoulder[(errorHistoryShoulderIndex+9)%10];
 
 
-        errorHistoryForearm[errorHistoryForearmIndex] = forearmSetAngle - forearmCurrentAngle;
+        errorHistoryForearm[errorHistoryForearmIndex] = (2600 - (forearmSetAngle + 400) - 400) - forearmCurrentAngle;
         int errorChangeForearm = errorHistoryForearm[errorHistoryForearmIndex] - errorHistoryForearm[(errorHistoryForearmIndex+9)%10];
 
         errorHistoryShoulderIndex++;
@@ -322,16 +324,15 @@ int main()
 
         motorParameters motorState = UpdateControls(0, 
             shoulderCurrentAngle, 
-            2004 - (shoulderSetAngle + 102) - 102, 
+            shoulderSetAngle, 
             errorAverage, 
             errorChange, 
             forearmCurrentAngle, 
-            forearmSetAngle,
+            2600 - (forearmSetAngle + 400) - 400,
             errorAverageForearm,
             errorChangeForearm);
 
         setMotorVelocity(motorState.forearmDuty, motorState.shoulderDuty);
-
 
         //Handle serial commands. first byte is the command byte, next two byte is the value
         if(stringPosition == 3)
@@ -346,23 +347,23 @@ int main()
             {
                 case 0b10000001:
                     //printf("Base! %i %x %x\r\n", argument, received[1], received[2]);
-                    printf("Base: %i\r\n", argument);
+                    //printf("Base: %i\r\n", argument);
                     setStepperAngle(argument);
                     break;
                 case 0b10000010:
-                    printf("Shoulder! %i\r\n", argument);
+                    //printf("Shoulder! %i\r\n", argument);
                     shoulderSetAngle = argument;
                     break;
                 case 0b10000011:
-                    printf("Elbow! %i\r\n", argument);
+                    //printf("Elbow! %i\r\n", argument);
                     forearmSetAngle = argument;
                     break;
                 case 0b10000100:
-                    printf("Wrist A! %i\r\n", argument);
+                    //printf("Wrist A! %i\r\n", argument);
                     setServoPosition(argument, currentServoPositionB);
                     break;
                 case 0b10000101:
-                    printf("Wrist B! %i\r\n", argument);
+                    //printf("Wrist B! %i\r\n", argument);
                     setServoPosition(currentServoPositionA, argument);
                 default: break;
             }
@@ -371,11 +372,28 @@ int main()
             received[2] = 0;
         }
 
+        if(stringPosition > 0)
+        {
+            counter++;
+        }
+        else
+        {
+            counter = 0;
+        }
+
+        if(counter > 40000)
+        {
+            received[0] = 0;
+            received[1] = 0;
+            received[2] = 0;  
+            stringPosition = 0;          
+        }
+
         //shoulderSetAngle = MIN(MAX(shoulderSetAngle, -102), 1902);
         //forearmSetAngle = MIN(MAX(forearmSetAngle, -400), 2200);
 
-        //printf("%i %i %i\n", forearmCurrentAngle, forearmSetAngle, motorState.forearmDuty);
-        // printf("%i %i %i %i\r\n", ang, shoulderCurrentAngle, 2004 - (shoulderSetAngle + 102) - 102, motorState.shoulderDuty);
+        printf("%i %i %i %i\n", enc_count, forearmCurrentAngle, forearmSetAngle, motorState.forearmDuty);
+        //printf("%i %i %i %i\r\n", ang, shoulderCurrentAngle, shoulderSetAngle, motorState.shoulderDuty);
         //printf("Ang: %i\r\n", ang);
         // for(j = 0; j < 10; j++)
         // {

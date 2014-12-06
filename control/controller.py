@@ -4,6 +4,9 @@ import string
 
 import sys
 
+sys.path.insert(0,"/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/")
+sys.path.insert(0,"/opt/local/lib")
+
 def tohex(val, nbits):
     hexval =  hex((val + (1 << nbits)) % (1 << nbits))
     hexval = hexval[2:len(hexval)]
